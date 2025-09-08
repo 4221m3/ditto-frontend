@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Handle, Position } from '@xyflow/react';
 
+import BtnView from '../../Buttons/BtnView/BtnView.tsx';
+
 import '@xyflow/react/dist/style.css';
 
 // #region Custom Type Hints
@@ -26,6 +28,13 @@ export const NodeSequence = ({ data }: { data: FormData }) => {
     const [stop_type, set_stop_type] = useState(data.type || 'counter');
     const [settings, set_settings] = useState(data.settings || {iterations: 1});
 
+    const handle_action_view = () => {
+        // This is where you would handle showing a new Viewport.
+        // The logic would depend on your state management,
+        // but it would typically involve setting a state variable
+        // to render the new Viewport component.
+        alert('Viewing sequence details!');
+    };
 
     const handle_action_type_change = (
         event: React.ChangeEvent<HTMLSelectElement>
@@ -110,8 +119,14 @@ export const NodeSequence = ({ data }: { data: FormData }) => {
     return (
         <div style={{ padding: '10px', border: '1px solid black', borderRadius: '5px' }}>
             <Handle type="target" position={Position.Left} />
+                <div style={{ position: 'absolute', top: 5, right: 5, zIndex: 10 }}>
+                    <BtnView
+                        on_click={handle_action_view}
+                        aria_label="View sequence actions"
+                    />
+                </div>
                 <div>
-                <strong>{stop_type}</strong>
+                    <strong>{stop_type}</strong>
                 </div>
                 <form>
                 <label htmlFor="action-select">Choose an action:</label>
