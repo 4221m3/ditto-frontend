@@ -1,0 +1,6 @@
+- [X] Make viewport render different Nodes depending on its type (Sequence or Action) 
+- [ ] Make it possible to add Nodes from nothing
+- [ ] Correct bug where the first connection happens with the node itself
+- [ ] Add the option to remove the connection
+- [ ] Criar botão para clicar e ver a sequência em específico
+- [ ] Cirar o botão para baixar o xls dos scrapers
