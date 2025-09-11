@@ -1,0 +1,21 @@
+.container-jobs {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    height: 100%;
+    width: 100%;
+
+}
+
+.node-job-add {
+
+  height: 100%;
+  width: 100%;
+
+  background-color: #5a5a5a;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}

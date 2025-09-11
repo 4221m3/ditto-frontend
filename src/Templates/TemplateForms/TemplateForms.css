@@ -1,0 +1,20 @@
+.container-form{
+    background-image: url('../../../public/placeholder.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.col-form{
+    background: white;
+}
+
+.col {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.row {
+    padding: 0 !important;
+    margin: 0 !important;
+}

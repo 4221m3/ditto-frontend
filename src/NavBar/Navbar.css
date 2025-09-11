@@ -1,0 +1,23 @@
+nav {
+    /*Borders*/
+    padding: 10px 20px;
+
+    /*Colours*/
+    background: linear-gradient(135deg, #1c1c1c, #1c1c1c);;
+    color: white;
+
+    /*Layout*/
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+
+    /*Fonts*/
+    font-family:Verdana, Geneva, Tahoma, sans-serif;
+    font-size: 26px;
+    font-weight: bold;
+}
+
+.navbar-buttons {
+    display: flex;
+    gap: 10px;
+}

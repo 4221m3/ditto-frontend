@@ -1,12 +1,7 @@
 import React from 'react';
 import { FaTrashAlt } from 'react-icons/fa';
 
-interface DeleteButtonProps {
-  on_click: () => void;
-  aria_label: string;
-}
-
-const BtnDelNode: React.FC<DeleteButtonProps> = ({ on_click, aria_label }) => {
+export const BtnNodeDel: React.FC<Props> = ({ on_click, aria_label }) => {
   return (
     <button
       className="delete-button"
@@ -18,4 +13,7 @@ const BtnDelNode: React.FC<DeleteButtonProps> = ({ on_click, aria_label }) => {
   );
 };
 
-export default BtnDelNode;
+interface Props {
+  on_click: () => void;
+  aria_label: string;
+}

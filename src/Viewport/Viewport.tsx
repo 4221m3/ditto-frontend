@@ -1,48 +1,35 @@
 import {
+  useState,
+  useEffect,
   useCallback,
   type FC,
 } from 'react';
+
+import { useNavigate } from 'react-router-dom';
 
 import {
   addEdge,
   useEdgesState,
   useNodesState,
   useReactFlow,
-  ReactFlow,
   Background,
+  ReactFlow,
   type Edge,
   type Node,
   type OnConnect,
   type OnConnectEnd,
 } from '@xyflow/react';
- 
-import BtnAddNode from '../Buttons/BtnAddNode/BtnAddNode';
-import BtnDelNode from '../Buttons/BtnDelNode/BtnDelNode';
-import BtnExit from '../Buttons/BtnExit/BtnExit';
+
+import { BtnNodeAdd } from '../Buttons/BtnNodeAdd/BtnNodeAdd.tsx';
+import { BtnNodeDel } from '../Buttons/BtnNodeDel/BtnNodeDel.tsx';
+import { BtnExit } from '../Buttons/BtnExit/BtnExit';
 
 import { NodeAction } from '../Nodes/NodeAction/NodeAction.tsx';
 import { NodeSequence } from '../Nodes/NodeSequence/NodeSequence.tsx';
-
-
+import { auth_store } from '../store/auth.tsx';
+import { useLocation } from 'react-router-dom';
 import '@xyflow/react/dist/style.css';
 
-// #region Initialization
-const initial_node: Node = {
-  id: '1',
-  position: { x: 250, y: 50 },
-  type: 'node_action',
-  data: {
-    type: 'click',
-    settings:{
-      xpath: '',
-      wait: 5,
-      clicks: 1
-    }
-  },
-};
-
-const initial_nodes: Node[] = [initial_node];
-const initial_edges: Edge[] = [];
 
 let id = 1;
 const get_id = () => `${++id}`;
@@ -54,19 +41,107 @@ const node_types = {
 };
 
 const default_viewport = { x: 0, y: 0, zoom: 1.5 };
-
-// #endregion
  
-export interface ViewportProps {
-  id: string
-  type: 'action' | 'sequence';
-}
+export const Viewport: FC = () => {
 
-const Viewport: FC<ViewportProps> = ({id, type = "sequence"}) => {
+  const navigate = useNavigate();
 
-  const [nodes, set_nodes, on_nodes_change] = useNodesState(initial_nodes);
-  const [edges, set_edges, on_edges_change] = useEdgesState(initial_edges);
+  const location = useLocation();
+  const { ids, type } = location.state || { ids: [], type: "sequence" }; // Provide default values to prevent errors
+
+  const token = auth_store((state) => state.token);
+
+  if (!token) {
+    return <div>You are not authenticated. Please log in.</div>;
+  };
+
+  const [nodes, set_nodes, on_nodes_change] = useNodesState<Node>([]);
+  const [edges, set_edges, on_edges_change] = useEdgesState<Edge>([]);
+
   const { screenToFlowPosition } = useReactFlow();
+
+  useEffect(() => {
+
+    const fetch_nodes = async () => {
+        if (!token) return;
+
+        const react_flow_wrapper = document.querySelector('.react-flow__pane');
+        if (!react_flow_wrapper) return;
+
+        const viewport_height = react_flow_wrapper.clientHeight;
+
+        set_nodes([]);
+        set_edges([]);
+        
+        let current_x = 0;
+        let current_y = viewport_height / 2;
+
+        try {
+          
+          let url = `http://localhost:8000/jobs/${ids[0]}/sequences/`;
+
+          if (type==="action"){
+            url = `http://localhost:8000/jobs/${ids[0]}/sequences/${ids[1]}/actions`;
+          }
+
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch jobs.');
+            }
+
+            const response_json = await response.json();
+
+            for (const node of response_json) {
+              
+              const new_node: Node = {
+                id: node["id"],
+                position: screenToFlowPosition({
+                  x: current_x,
+                  y: current_y,
+                }),
+                type: type === 'action' ? 'node_action' : 'node_sequence',
+                data: type === "action" ? {
+                    type: node["type"],
+                    settings: node ["settings"]
+                  }:{
+                    type: node["stop_condition"]["type"],
+                    settings: node ["stop_condition"]["settings"]
+                  }
+              };
+              
+              current_x += 600;
+              current_y += 0;
+
+              set_nodes((nds) => nds.concat(new_node));
+            }
+
+            for (const node of response_json) {
+              
+              const new_edge: Edge = {
+                id: node["id"] + node["next_id"],
+                source: node["id"],
+                target: node["next_id"],
+              };
+
+              set_edges((edg) => edg.concat(new_edge));
+            }
+
+        } catch (error) {
+            console.error('Error fetching jobs:', error);
+        }
+
+    };
+
+    fetch_nodes();
+
+  }, [token]);
 
   const on_connect_start: OnConnect = useCallback(
     (params) => set_edges((eds) => addEdge(params, eds)),
@@ -117,10 +192,7 @@ const Viewport: FC<ViewportProps> = ({id, type = "sequence"}) => {
         };
 
         set_nodes((nds) => nds.concat(new_node));
-
-        set_edges((eds) =>
-          eds.concat({ id: new_node_id, source: connection_state.fromNode.id, target: new_node_id }),
-        );
+        set_edges((eds) => eds.concat({ id: new_node_id, source: connection_state.fromNode.id, target: new_node_id }));
       }
 
     },
@@ -153,7 +225,6 @@ const Viewport: FC<ViewportProps> = ({id, type = "sequence"}) => {
             },
           };
 
-
         const new_node: Node = {
           id: new_node_id,
           position: screenToFlowPosition({
@@ -162,8 +233,33 @@ const Viewport: FC<ViewportProps> = ({id, type = "sequence"}) => {
           }),
           ...new_node_data
         };
+        
+        try {
+          const response = await fetch(
+          'http://localhost:8000/token',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: form_data.toString(),
+          }
+        );
 
-        set_nodes((nds) => nds.concat(new_node));
+        if (!response.ok) {
+          throw new Error('Invalid username or password.');
+        } else {
+          const response_json: TokenResponse = await response.json();
+          set_token(response_json.access_token);
+          window.location.href = '/jobs';
+        }
+      } catch (error: any) {
+        set_error(error.message);
+      } finally {
+        set_loading(false);
+      }
+
+      set_nodes((nds) => nds.concat(new_node));
 
   }, [nodes, set_nodes]);
 
@@ -177,6 +273,12 @@ const Viewport: FC<ViewportProps> = ({id, type = "sequence"}) => {
 
   }, [nodes, set_nodes]);
   
+  const handle_exit = useCallback(() => {
+    if (type === "sequence") {
+      navigate('/jobs'); 
+    }
+  }, []);
+
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
 
@@ -215,12 +317,12 @@ const Viewport: FC<ViewportProps> = ({id, type = "sequence"}) => {
         }}
       >
 
-        <BtnAddNode
+        <BtnNodeAdd
           on_click={handle_add_node}
           aria_label="Add Node"
         />
 
-        <BtnDelNode
+        <BtnNodeDel
           on_click={handle_del_node}
           aria_label="Delete Selected Node"
         />
@@ -236,14 +338,20 @@ const Viewport: FC<ViewportProps> = ({id, type = "sequence"}) => {
         }}
       >
         <BtnExit
-            onClick={() => alert('Exiting to parent sequence!')}
+            onClick={handle_exit}
             ariaLabel="Exit to parent sequence"
         />
       </div>
 
     </div>
   );
-  
 };
- 
-export default Viewport;
+
+//#region Props
+
+interface Props {
+  ids: string[];
+  type: 'action' | 'sequence';
+}
+
+//#endregion

@@ -1,12 +1,10 @@
 import React from 'react';
+
 import { IoAdd } from 'react-icons/io5';
 
-interface PlusButtonProps {
-  on_click: () => void;
-  aria_label: string;
-}
+//#region Component
 
-const BtnAddNode: React.FC<PlusButtonProps> = ({ on_click, aria_label }) => {
+export const BtnNodeAdd: React.FC<Props> = ({ on_click, aria_label }) => {
   return (
     <button
       className="plus-button"
@@ -18,4 +16,12 @@ const BtnAddNode: React.FC<PlusButtonProps> = ({ on_click, aria_label }) => {
   );
 };
 
-export default BtnAddNode;
+//#endregion
+
+//#region Props
+interface Props {
+  on_click: () => void;
+  aria_label: string;
+}
+
+//#endregion

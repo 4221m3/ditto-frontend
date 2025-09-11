@@ -1,12 +1,20 @@
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import Viewport from './Viewport/Viewport.tsx'
-import { ReactFlowProvider } from '@xyflow/react';
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+import App from './App/App.tsx';
 
-createRoot(document.getElementById('root')!).render(
-  <div style={{ width: '100vw', height: '100vh' }}>
-    <ReactFlowProvider>
-      <Viewport />
-    </ReactFlowProvider>
-  </div>
-)
+//#region Styling
+
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+import './main.css';
+
+//#endregion
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </React.StrictMode>
+);
