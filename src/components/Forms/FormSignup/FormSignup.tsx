@@ -1,9 +1,14 @@
 import React from 'react';
 import { useState } from 'react';
 
+import type { UserIn } from '../../../interfaces/User';
+
 import './FormSignup.css';
 
 export const FormSignup: React.FC = () => {
+  
+  //#region State
+
   const [name_first, set_name_first] = useState<string>('');
   const [name_last, set_name_last] = useState<string>('');
   const [email, set_email] = useState<string>('');
@@ -12,13 +17,18 @@ export const FormSignup: React.FC = () => {
   const [error, set_error] = useState<string>('');
   const [loading, set_loading] = useState<boolean>(false);
 
-  const handle_submit = async (event: React.FormEvent<HTMLFormElement>) => {
+  //#endregion
+
+  //#region Handle
+
+  const on_submit = async (event: React.FormEvent<HTMLFormElement>) => {
+
     event.preventDefault();
 
     set_loading(true);
     set_error('');
 
-    const form_data = {
+    const form_data: UserIn = {
       'name_first': name_first,
       'name_last': name_last,
       'email': email,
@@ -50,6 +60,8 @@ export const FormSignup: React.FC = () => {
       set_loading(false);
     }
   };
+
+  //#endregion
 
   return (
     <div className="signup-card">

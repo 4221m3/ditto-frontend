@@ -1,21 +1,28 @@
 import React from 'react';
 import { useState } from 'react';
 
-import { auth_store } from '../../store/auth.tsx';
+import { auth_store } from '../../../store/auth.tsx';
+import { login } from '../../../handles/user.tsx';
 
+// #region Custom''
 import './FormLogin.css';
 
 export const FormLogin: React.FC = () => {
 
+  //#region State
+
   const [username, set_username] = useState<string>('');
   const [password, set_password] = useState<string>('');
-
   const [error, set_error] = useState<string>('');
   const [loading, set_loading] = useState<boolean>(false);
 
   const set_token = auth_store((state) => state.set_token);
+
+  //#endregion
   
-  const handle_submit = async (event: React.FormEvent<HTMLFormElement>) => {
+  //#region Handle
+
+  const on_submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     set_loading(true);
@@ -27,51 +34,47 @@ export const FormLogin: React.FC = () => {
     form_data.append('password', password);
 
     try {
-      const response = await fetch(
-        'http://localhost:8000/token',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: form_data.toString(),
-        }
-      );
+      const response_json = await login(form_data)
+      set_token(response_json.access_token);
+      window.location.href = '/jobs';
 
-      if (!response.ok) {
-        throw new Error('Invalid username or password.');
-      } else {
-        const response_json: TokenResponse = await response.json();
-        set_token(response_json.access_token);
-        window.location.href = '/jobs';
-      }
     } catch (error: any) {
       set_error(error.message);
+
     } finally {
       set_loading(false);
     }
   };
 
+  //#endregion
+
   return (
-    <div className='login-card'>
-      <h2 className='form-title'>Login</h2>
-      <form onSubmit={handle_submit} className='login-form'>
+    <div className='form'>
+
+      <h2 className='form-header'>
+        Login
+      </h2>
+
+      <form
+        className='form-body'
+        onSubmit={on_submit}
+      >
         <input
           type="text"
           value={username}
           onChange={(e) => set_username(e.target.value)}
-          placeholder="username"
+          placeholder="jhondoe@gmail.com"
           required
         />
         <input
           type="password"
           value={password}
           onChange={(e) => set_password(e.target.value)}
-          placeholder="password"
+          placeholder="SuperSecretPass123!"
           required
         />
         <button
-          className='btn-login'
+          className='form-submit'
           type="submit"
           disabled={loading}
         >
@@ -79,13 +82,13 @@ export const FormLogin: React.FC = () => {
         </button>
       </form>
 
-      <p className='signup-redirect'>Need an account? <a href='/signup'>Sign up</a></p>
-      {error && <p className='error-message'>{error}</p>}
+      <p className='form-redirect'>
+        Need an account?
+        <a href='/signup'> Sign up</a>
+      </p>
+
+      {error && <p className='form-error-msg'>{error}</p>}
+
     </div>
   );
 };
-
-interface TokenResponse {
-  access_token: string;
-  token_type: string;
-}

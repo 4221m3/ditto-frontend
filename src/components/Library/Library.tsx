@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { NodeJob, type JobData } from '../Nodes/NodeJob/NodeJob';
-import { auth_store } from '../store/auth';
+import { auth_store } from '../../store/auth';
 
 export const Library = () => {
 

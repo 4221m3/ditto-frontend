@@ -26,7 +26,7 @@ import { BtnExit } from '../Buttons/BtnExit/BtnExit';
 
 import { NodeAction } from '../Nodes/NodeAction/NodeAction.tsx';
 import { NodeSequence } from '../Nodes/NodeSequence/NodeSequence.tsx';
-import { auth_store } from '../store/auth.tsx';
+import { auth_store } from '../../store/auth.tsx';
 import { useLocation } from 'react-router-dom';
 import '@xyflow/react/dist/style.css';
 
@@ -47,7 +47,7 @@ export const Viewport: FC = () => {
   const navigate = useNavigate();
 
   const location = useLocation();
-  const { ids, type } = location.state || { ids: [], type: "sequence" }; // Provide default values to prevent errors
+  const { ids, type } = location.state || { ids: [], type: "sequence" };
 
   const token = auth_store((state) => state.token);
 
@@ -199,79 +199,163 @@ export const Viewport: FC = () => {
     [screenToFlowPosition],
   );
 
-  const handle_add_node = useCallback(() => {
-    
-        const new_node_id = get_id();
+  const handle_add_node = useCallback(async () => {
 
-        const new_node_data = type === 'action' ?
-          {
-            type: 'node_action',
-            data: {
-              type: 'click',
-              settings:{
-                xpath: '',
-                wait: 5,
-                clicks: 1
-              }
-            },
-          } :
-          {
-            type: 'node_sequence',
-            data: {
-              type: 'counter',
-              settings:{
-                iterations: 1
-              }
-            },
-          };
-
-        const new_node: Node = {
-          id: new_node_id,
-          position: screenToFlowPosition({
-            x: 0,
-            y: 0,
-          }),
-          ...new_node_data
-        };
-        
-        try {
-          const response = await fetch(
-          'http://localhost:8000/token',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: form_data.toString(),
+    const new_node_data = type === 'action' ?
+      {
+        type: 'node_action',
+        data: {
+          type: 'click',
+          settings:{
+            xpath: '',
+            wait: 5,
+            clicks: 1
           }
-        );
+        },
+      } :
+      {
+        type: 'node_sequence',
+        data: {
+          type: 'counter',
+          settings:{
+            iterations: 1
+          }
+        },
+      };
+    
+    if (type === "sequence") {
+        try {
+            const response = await fetch(
+                `http://localhost:8000/jobs/${ids[0]}/sequences/`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        name: "",
+                        desc: "",
+                        actions: {},
+                        stop_condition: new_node_data.data,
+                        next_id: "",
+                        first: false,
+                    }),
+                }
+            );
 
-        if (!response.ok) {
-          throw new Error('Invalid username or password.');
-        } else {
-          const response_json: TokenResponse = await response.json();
-          set_token(response_json.access_token);
-          window.location.href = '/jobs';
+            if (!response.ok) {
+                throw new Error('Failed to add new node.');
+            }
+
+            const response_json = await response.json();
+            const new_node: Node = {
+              id: await response_json.id,
+              position: screenToFlowPosition({
+                x: 0,
+                y: 0,
+              }),
+              ...new_node_data
+            };
+
+            set_nodes((nds) => nds.concat(new_node));
+
+        } catch (error) {
+            console.error('Error adding sequence node:', error);
         }
-      } catch (error: any) {
-        set_error(error.message);
-      } finally {
-        set_loading(false);
+
+    } else { // type === "action"
+        try {
+            const response = await fetch(
+                `http://localhost:8000/jobs/${ids[0]}/sequences/${ids[1]}/actions`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        ...new_node_data.data, // use .data here
+                        next_id: "",
+                        first: false,
+                    }),
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error('Failed to add new node.');
+            }
+            
+            const response_json = await response.json();
+            const new_node: Node = {
+              id: await response_json.id,
+              position: screenToFlowPosition({
+                x: 0,
+                y: 0,
+              }),
+              ...new_node_data
+            };
+
+            set_nodes((nds) => nds.concat(new_node));
+
+        } catch (error) {
+            console.error('Error adding action node:', error);
+        }
       }
 
-      set_nodes((nds) => nds.concat(new_node));
+  }, [set_nodes, type, screenToFlowPosition, ids, token]);
 
-  }, [nodes, set_nodes]);
-
-  const handle_del_node = useCallback(() => {
-    
+  const handle_del_node = useCallback(async () => {
     const selected_node = nodes.find(node => node.selected);
 
     if (selected_node) {
-      set_nodes((nds) => nds.filter((node) => node.id !== selected_node.id));
+        // Check if there's a selected node before making the API call
+        if (type === "sequence") {
+            try {
+                const response = await fetch(
+                    `http://localhost:8000/jobs/${ids[0]}/sequences/${selected_node.id}/`,
+                    {
+                        method: 'DELETE',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                    }
+                );
+                if (!response.ok) {
+                    throw new Error('Failed to delete node.');
+                }
+                // Update state only on success
+                set_nodes((nds) => nds.filter((node) => node.id !== selected_node.id));
+            } catch (error) {
+                console.error('Error deleting sequence node:', error);
+            }
+        } else { // type === "action"
+            try {
+                const response = await fetch(
+                    `http://localhost:8000/jobs/${ids[0]}/sequences/${ids[1]}/actions/${selected_node.id}/`,
+                    {
+                        method: 'DELETE',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                    }
+                );
+                if (!response.ok) {
+                    throw new Error('Failed to delete node.');
+                }
+                // Update state only on success
+                set_nodes((nds) => nds.filter((node) => node.id !== selected_node.id));
+            } catch (error) {
+                console.error('Error deleting action node:', error);
+            }
+        }
     }
 
-  }, [nodes, set_nodes]);
+  }, [nodes, set_nodes, type, ids, token]);
   
   const handle_exit = useCallback(() => {
     if (type === "sequence") {

@@ -1,4 +1,4 @@
-.login-card {
+.form {
   background-color: #ffffff;
   padding: 40px;
   border-radius: 12px;
@@ -8,28 +8,28 @@
   align-items: center;
 }
 
-.login-form {
-  display: flex;
-  flex-direction: column;
-  gap: 15px; /* Adds space between form elements */
-  width: 100%;
-}
-
-.form-title {
+.form-header {
   margin-bottom: 25px; /* Adds space below the title */
   font-size: 2rem;
   font-weight: bold;
   color: #333;
 }
 
-.login-form input {
+.form-body {
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* Adds space between form elements */
+  width: 100%;
+}
+
+.form-body input {
   padding: 12px;
   border: 1px solid #ddd;
   border-radius: 8px;
   width: 100%;
 }
 
-.btn-login {
+.form-submit {
   padding: 12px;
   background-color: #007bff;
   color: white;
@@ -40,20 +40,20 @@
   width: 100%;
 }
 
-.btn-login:hover {
+.form-submit:hover {
   background-color: #0056b3;
 }
 
-.error-message {
+.form-error-msg{
   color: #e74c3c;
   margin-top: 15px; /* Adds space above the error message */
   text-align: center;
 }
 
-.signup-redirect{
+.form-redirect{
   margin-top: 15px;
 }
 
-.signup-redirect a{
+.form-redirect a{
   text-decoration: none;
 }

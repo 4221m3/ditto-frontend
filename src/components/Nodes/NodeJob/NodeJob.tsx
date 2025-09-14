@@ -4,7 +4,7 @@ import { BtnNodeDel } from '../../Buttons/BtnNodeDel/BtnNodeDel';
 
 import './NodeJob.css';
 
-import placeholder from '../../../public/placeholder2.webp'
+import placeholder from '../../../../public/placeholder2.webp'
 
 export interface JobData {
   id: string;

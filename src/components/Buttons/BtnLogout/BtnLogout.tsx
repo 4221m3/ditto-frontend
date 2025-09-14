@@ -1,4 +1,4 @@
-import { auth_store } from '../../store/auth';
+import { auth_store } from '../../../store/auth';
 
 import './BtnLogout.css'
 

@@ -4,13 +4,13 @@ export const BtnLogin = () => {
   return (
     <button
       className="btn-login"
-      onClick={go_to_login}
+      onClick={login}
     >
       Login
     </button>
   );
 };
 
-const go_to_login = () => {
+const login = () => {
   window.location.href = '/login'; 
 };

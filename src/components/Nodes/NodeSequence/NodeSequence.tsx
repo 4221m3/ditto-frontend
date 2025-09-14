@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Handle, Position } from '@xyflow/react';
-
+import { useNavigate } from 'react-router-dom';
 import BtnView from '../../Buttons/BtnView/BtnView.tsx';
 
 import '@xyflow/react/dist/style.css';
@@ -28,12 +28,18 @@ export const NodeSequence = ({ data }: { data: FormData }) => {
     const [stop_type, set_stop_type] = useState(data.type || 'counter');
     const [settings, set_settings] = useState(data.settings || {iterations: 1});
 
+    const navigate = useNavigate();
+
     const handle_action_view = () => {
-        // This is where you would handle showing a new Viewport.
-        // The logic would depend on your state management,
-        // but it would typically involve setting a state variable
-        // to render the new Viewport component.
-        alert('Viewing sequence details!');
+
+      const viewport_props = {
+        ids: [
+            data.id
+        ],
+        type: 'action',
+      };
+
+      navigate('/action', { state: viewport_props })
     };
 
     const handle_action_type_change = (
